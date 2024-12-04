@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        input, button, select {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .progress-bar {
+            width: 100%;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress {
+            height: 20px;
+            background: #76c7c0;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        .timer {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Personal Tracker</h1>
+
+        <!-- XP Tracker -->
+        <h2>XP Tracker</h2>
+        <p>Set your XP target and log daily XP progress:</p>
+        <input type="number" id="targetXP" placeholder="Set target XP">
+        <input type="number" id="xpInput" placeholder="Enter earned XP">
+        <button onclick="addXP()">Add XP</button>
+        <div class="progress-bar">
+            <div class="progress" id="xpProgress"></div>
+        </div>
+        <p id="xpStatus">0 / 0 XP</p>
+
+        <!-- Chess Tracker -->
+        <h2>Chess Tracker</h2>
+        <p>Log your chess games:</p>
+        <button onclick="logWin()">Log Win</button>
+        <button onclick="logLoss()">Log Loss</button>
+        <p id="chessStatus">Wins: 0 | Losses: 0 | Ratio: 0</p>
+
+        <!-- Assignment Tracker -->
+        <h2>Assignment Tracker</h2>
+        <p>Add assignments and track time spent on each:</p>
+        <input type="text" id="assignmentName" placeholder="Assignment Name">
+        <button onclick="addAssignment()">Add Assignment</button>
+        <select id="assignmentList"></select>
+        <button onclick="selectAssignment()">Start Timer for Selected Assignment</button>
+        <p id="assignmentStatus">No assignment selected.</p>
+
+        <!-- Timer -->
+        <h2>Timer</h2>
+        <p>Set a timer for your tasks:</p>
+        <input type="number" id="timerMinutes" placeholder="Minutes">
+        <button onclick="startTimer()">Start Timer</button>
+        <p class="timer" id="timerDisplay">00:00</p>
+        <p id="workLog"></p>
+    </div>
+
+    <script>
+        // XP Tracker
+        let totalXP = 0;
+        let targetXP = 0;
+
+        function addXP() {
+            const xpInput = document.getElementById('xpInput').value;
+            const targetInput = document.getElementById('targetXP').value;
+
+            if (targetInput) targetXP = parseInt(targetInput);
+            totalXP += parseInt(xpInput);
+
+            const progress = Math.min((totalXP / targetXP) * 100, 100);
+            document.getElementById('xpProgress').style.width = progress + '%';
+            document.getElementById('xpStatus').innerText = `${totalXP} / ${targetXP} XP`;
+
+            if (totalXP >= targetXP) alert('Congratulations! You reached your target!');
+        }
+
+        // Chess Tracker
+        let wins = 0;
+        let losses = 0;
+
+        function logWin() {
+            wins++;
+            updateChessStatus();
+        }
+
+        function logLoss() {
+            losses++;
+            updateChessStatus();
+        }
+
+        function updateChessStatus() {
+            const ratio = (losses === 0) ? wins : (wins / losses).toFixed(2);
+            document.getElementById('chessStatus').innerText = 
+                `Wins: ${wins} | Losses: ${losses} | Ratio: ${ratio}`;
+        }
+
+        // Assignment Tracker
+        const assignments = {};
+        let currentAssignment = null;
+
+        function addAssignment() {
+            const name = document.getElementById('assignmentName').value;
+            if (!name) return alert('Please enter an assignment name.');
+
+            assignments[name] = 0;
+            const option = document.createElement('option');
+            option.value = name;
+            option.text = name;
+            document.getElementById('assignmentList').add(option);
+
+            document.getElementById('assignmentName').value = '';
+        }
+
+        function selectAssignment() {
+            const selected = document.getElementById('assignmentList').value;
+            if (!selected) return alert('Please select an assignment.');
+
+            currentAssignment = selected;
+            document.getElementById('assignmentStatus').innerText = `Tracking: ${selected}`;
+        }
+
+        // Timer
+        let timer;
+        let workTime = 0;
+
+        function startTimer() {
+            const minutes = document.getElementById('timerMinutes').value;
+            if (!currentAssignment) return alert('Please select an assignment first.');
+
+            let time = minutes * 60;
+            clearInterval(timer);
+
+            timer = setInterval(() => {
+                const mins = Math.floor(time / 60);
+                const secs = time % 60;
+                document.getElementById('timerDisplay').innerText = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if (time === 0) {
+                    clearInterval(timer);
+                    alert('Time is up!');
+                }
+
+                time--;
+                if (time >= 0) assignments[currentAssignment]++;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
